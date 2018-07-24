@@ -1,6 +1,6 @@
-<div style="padding: 10% 10% 10% 10%">
 
 
+<ion-content>
     <h2>{{titulo}}</h2>
     <pre>
       {{texto}}
@@ -12,11 +12,13 @@
       <ion-radio value="{{item.id}}" ></ion-radio>
     </ion-item>
   </ion-list>
+
+
   <div  *ngIf="conectado">
     <button ion-button (click)="onRead()">read</button>
     <button ion-button (click)="onWrite()">write</button>
   </div>
 
-  <button ion-button *ngIf="!conectado"(click)="onConect()">conecta com mac</button>
-  
-</div>
+  <button ion-button *ngIf="!conectado" (click)="onConect()">conecta com mac</button>
+  <button ion-button *ngIf="!conectado" (click)="scan()">scan</button>
+</ion-content>

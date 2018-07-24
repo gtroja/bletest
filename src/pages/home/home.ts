@@ -26,14 +26,25 @@ export class HomePage {
     this.titulo = "home"
     this.texto += "teste\n"
 
+    this.scan()
+
+  }
+
+  scan(){
+    this.devices = []
     this.ble.scan([], 5).subscribe(
       suc=>{
         console.log("encontrei", suc)
-        if(suc.name)
+        if(suc.name){
+          console.log("adicionarei a lista de devs")
           this.devices.push(suc)
+          console.log( this.devices )
+        }
+      },
+      err=>{
+        console.log("erro ao scannear devices", err)
       }
     )
-
   }
 
   onConect(){
@@ -46,6 +57,7 @@ export class HomePage {
         console.log("consegui conexão", suc)
         this.conectado = true
         this.deviceConectado = suc;
+        this.texto = "device conectado:\n"+ JSON.stringify(this.deviceConectado).replace(",","\n")
       },
       (err)=>{
         this.texto += "aconteceu algum erro\n"
@@ -73,7 +85,18 @@ export class HomePage {
   }
 
   onWrite(){
-   //this.ble.write(this.deviceConectado)
+
+    let charac = "f0001111-0451-4000-b000-000000000000"
+    let service =  "f0001110-0451-4000-b000-000000000000"
+
+    var data = new Uint8Array(1);
+    data[0] = 0x01;
+    this.ble.write(
+      this.deviceConectado.id,
+      service,
+      charac,
+       data.buffer
+    )
 
   }
 }
