@@ -1,0 +1,22 @@
+<div style="padding: 10% 10% 10% 10%">
+
+
+    <h2>{{titulo}}</h2>
+    <pre>
+      {{texto}}
+    </pre>
+
+  <ion-list radio-group *ngIf="!conectado" [(ngModel)]="selecionado">
+    <ion-item *ngFor="let item of devices">
+      <ion-label>{{item.name}}</ion-label>
+      <ion-radio value="{{item.id}}" ></ion-radio>
+    </ion-item>
+  </ion-list>
+  <div  *ngIf="conectado">
+    <button ion-button (click)="onRead()">read</button>
+    <button ion-button (click)="onWrite()">write</button>
+  </div>
+
+  <button ion-button *ngIf="!conectado"(click)="onConect()">conecta com mac</button>
+  
+</div>
