@@ -1,0 +1,25 @@
+<!-- Generated template for the CardDeviceComponent component -->
+<ion-card>
+  <ion-card-header>
+    {{name}}
+  </ion-card-header>
+  <ion-card-content>
+    {{id}}
+  </ion-card-content>
+
+  <ion-list>
+    <button ion-item *ngFor="let service of deviceServices" (click)="doService(service)">
+      <ion-icon name="create" item-start *ngIf="service.properties.indexOf('WriteWithoutResponse') != -1 || service.properties.indexOf('Write') != -1"></ion-icon>
+      <ion-icon name="book" item-start *ngIf="service.properties.indexOf('Read') != -1"></ion-icon>
+      <small>{{service.service}}</small>
+      <small>{{service.characteristic}}</small>
+    </button>
+    <button  ion-item *ngIf="deviceServices != null" (click)="desconecta()">
+      desconectar
+    </button>
+    <button  ion-item *ngIf="deviceServices == null" (click)="conecta()">
+      conectar
+    </button>
+
+  </ion-list>
+</ion-card>

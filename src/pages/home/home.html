@@ -1,24 +1,21 @@
 
 
 <ion-content>
+
     <h2>{{titulo}}</h2>
     <pre>
-      {{texto}}
+      {{message}}
     </pre>
-
-  <ion-list radio-group *ngIf="!conectado" [(ngModel)]="selecionado">
-    <ion-item *ngFor="let item of devices">
-      <ion-label>{{item.name}}</ion-label>
-      <ion-radio value="{{item.id}}" ></ion-radio>
-    </ion-item>
-  </ion-list>
-
-
-  <div  *ngIf="conectado">
-    <button ion-button (click)="onRead()">read</button>
-    <button ion-button (click)="onWrite()">write</button>
-  </div>
-
-  <button ion-button *ngIf="!conectado" (click)="onConect()">conecta com mac</button>
-  <button ion-button *ngIf="!conectado" (click)="scan()">scan</button>
+  <card-device *ngFor="let device of _listDevices"  
+    (read)="readService($event)" 
+    (write)="writeService($event)" 
+    [name] ="device.name"
+    [id] = "device.id"
+    [deviceServices] = "device.characteristics"
+    (desconectar) = "desconecta(device)"
+    (conectar) = "conectarAoDevice(device)"
+  ></card-device>
+  
+  <button ion-button (click)="scan()" >scan</button>
+  <button ion-button (click)="force()" >forçar abrir porta</button>
 </ion-content>
