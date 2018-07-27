@@ -31,17 +31,17 @@ export class HomePage {
   ionViewDidEnter(){
       this.scan()
     
-      //é para fins de testes. não tem funcionado bem  
-      this.devices.autoConecta("54:6C:0E:9B:4E:0B",
-      ()=>{//em caso de conexão
-          this.message = "conectado"
+    //   //é para fins de testes. não tem funcionado bem  
+    //   this.devices.autoConecta("54:6C:0E:9B:4E:0B",
+    //   ()=>{//em caso de conexão
+    //       this.message = "conectado"
 
-      },
-      ()=>{//em caso de desconexão
-        this.message = "desconectado"
+    //   },
+    //   ()=>{//em caso de desconexão
+    //     this.message = "desconectado"
 
-      }
-    )
+    //   }
+    // )
     /*caso queira forjar uma lista de 
       devices para teste, use o mock.*/
     //this._listDevices = this.mock
@@ -63,6 +63,8 @@ export class HomePage {
   * Limpa a lista de devices e readiciona a partir de um observavel.
   */
   scan(){
+
+    //falta dar refresh no conectado #TODO
     this._listDevices = []
     this.devices.getDevicesProximas(10).subscribe(
       ok =>{
@@ -80,11 +82,13 @@ export class HomePage {
     )
   }
   
-  private _refreshCardConectado(){
-  /*transforma o card de desconectado em conectado (envia a lista de services pro card)
-    se o device conectado não estiver na lista de devices, adiciona. */  
-    i = this._listDevices.indexOf(this._deviceConectado)
-    i === -1 ? this._listDevices.push(ok) :  this._listDevices[index].characterists = ok.characteristics //pra não deletar o card anterior, só mudo um pedaço do objeto
+  private _refreshCardConectado(device : {id : string}){
+  /*transforma o card de desconectado passado por parametro em conectado (envia a lista de services pro card)
+    se o device conectado não estiver na lista de devices, adiciona. */
+    if(device.id == this._deviceConectado.id){
+      let i = this._listDevices.indexOf(device)
+      i === -1 ? this._listDevices.push(this._deviceConectado) :  this._listDevices[i].characterists = this._deviceConectado.characteristics //pra não deletar o card anterior, só mudo um pedaço do objeto
+    }
   }
   
 
@@ -140,9 +144,18 @@ export class HomePage {
           console.log("conectei")
           this.ngZone.run(// sempre que mexo com lista que vai pra tela, pra atualizar mais rapido, uso o ngzone
             ()=>{
+
+              
               console.log("consegui me conectar", ok)
+
+              //sem usar o metodo de refreshcard, que nao esta funionando no momento
               this._deviceConectado = ok
-              _refreshCardConectado()
+              let index = this._listDevices.indexOf(device);
+              index === -1 ? this._listDevices.push(ok) :  this._listDevices[index] = ok
+              console.log("lista esta assim:", this._listDevices)
+
+              //this._refreshCardConectado(device)
+
               console.log("lista esta assim:", this._listDevices)
             }
           )//fim ngzone          

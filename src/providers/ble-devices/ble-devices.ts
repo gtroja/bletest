@@ -4,7 +4,9 @@ import "rxjs/add/operator/timeout";
 import { Observable } from 'rxjs/Observable';
 
 /**
- * serviço que prove acesso a devices proximas
+ * serviço que prove acesso a devices ble proximas
+ * @method zz #TODO
+ *
  */
 @Injectable()
 export class BleDevicesProvider {
@@ -14,22 +16,29 @@ export class BleDevicesProvider {
 		this.ble.autoConnect(id, connectCallback, disconnectCallback);
 	}
 
+  /**
+  * metodo de teste. o objetivo aqui é tentar uma conexão sem scan;
+  * ele tenta em 5s conectar com a placa ble do carsharing e pra verificar se 
+  * funcionou envia um comando de abrir porta, que na placa acende o led vermelho
+  * 
+  */
 	public force(){
 		let conec = this.ble.connect("54:6C:0E:9B:4E:0B").timeout(5000).subscribe( 
 			suc =>{
 				let data = new Uint8Array(1)
-				data[0] = 1
-				this.ble.write("54:6C:0E:9B:4E:0B","f0001110-0451-4000-b000-000000000000","f0001111-0451-4000-b000-000000000000",data.buffer).then(
-					ok=>{
+				data[0] = 1 //se vc mudar para 2 acende o led verde ;)
+				this.ble.write("54:6C:0E:9B:4E:0B","f0001110-0451-4000-b000-000000000000","f0001111-0451-4000-b000-000000000000",data.buffer)
+        .then(//comando que acende o led da placa
+					ok=>{//neste momento o led deve ter acendido na placa
 						console.log("forcei ok", ok)
-						this.ble.disconnect("54:6C:0E:9B:4E:0B")
-						conec.unsubscribe()
+						this.ble.disconnect("54:6C:0E:9B:4E:0B")//para a placa voltar a advertise
+						conec.unsubscribe()//evita erro de timeout
 					}
 					
 				)
-				.catch(
+        .catch(
 					err =>{
-						console.log("erro ao forçar", err)
+						console.log("erro ao forçar(erro no comando ble.write)", err)
 					}
 				)
 				
@@ -189,25 +198,27 @@ export class BleDevicesProvider {
 	 *  escreve em um serviço de um device conectado.
 	 * @param service serviço no qual será escrito
 	 * @param value valor a ser escrito
+   * @param timeout? timeout em segundos (padrão 5)
 	 * @returns valor retornado pelo device
 	 */
 	public writeService(
 		service : {
 			service: string,
 			characteristic: string,
-			properties?: Array<any>
+			properties?: Array<string>
 		},
-		value : number
+		value : number,
+    timeout? : number,
 	): Observable<any>{
+    if(!timeout) timeout = 5
 		//ajustando o dado para mandar		
-		let data = new Uint8Array(1)
+		let data = new Uint8Array(1)//isso vai dar problema alguma hora
 		data[0] = value// % 2**8;
 		return Observable.create(
 			o =>{
 				if(!this._deviceConectado){
-					o.error({message: "nenhum device conectado, use conectaDevice"})
+					o.error({message: "nenhum device conectado, use conectaDevice("})
 				}
-				console.log("tentar enviar com:", this._deviceConectado.id, service.service, service.characteristic, data.buffer)
 				this.ble.write(this._deviceConectado.id, service.service, service.characteristic, data.buffer)
 				.then(
 					ok =>{
@@ -224,17 +235,14 @@ export class BleDevicesProvider {
 				)
 
 			}
-		)
+		).timeout(5)
 
 	}
 
 	private _deviceConectado = null;
-
 	constructor(
 		private ble : BLE
 	) {
-
-
 	}
 
 }
