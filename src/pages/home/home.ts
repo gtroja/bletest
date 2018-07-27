@@ -9,12 +9,13 @@ import "rxjs/add/operator/timeout";
 })
 export class HomePage {
 
-  private _listDevices = []
-  private _deviceConectado = null;
+  private _listDevices = []         //é a lista que é plotada na tela com cards
+  private _deviceConectado = null;  //objeto de device atualmente conectado 
+                                    //e flag ao mesmo tempo (null sinaliza que o app esta disponivel para nova conexão)
 
-  private message : string;
+  private message : string;         //texto acima da lista (estou usando como terminal de saida de comando bt)
   
-  private mock = [
+  private mock = [// para teste
     {name: "mobi7 car sharing 1", id: "54:6C:0E:9B:4E:0B"},
     {name: "mobi7 car sharing 2", id: "54:6C:0E:9B:4E:0B"},
     {name: "mobi7 car sharing 3", id: "54:6C:0E:9B:4E:0B"},
@@ -24,47 +25,73 @@ export class HomePage {
 
   constructor(
     private devices : BleDevicesProvider,
-    private ngZone : NgZone ) {}
+    private ngZone : NgZone )
+  {}
 
   ionViewDidEnter(){
       this.scan()
+    
+      //é para fins de testes. não tem funcionado bem  
       this.devices.autoConecta("54:6C:0E:9B:4E:0B",
-      ()=>{
+      ()=>{//em caso de conexão
           this.message = "conectado"
 
       },
-      ()=>{
+      ()=>{//em caso de desconexão
         this.message = "desconectado"
 
       }
     )
+    /*caso queira forjar uma lista de 
+      devices para teste, use o mock.*/
     //this._listDevices = this.mock
 
   }
 
 
-
+  /** 
+  * para fins de teste, sem scan, tento conectar a placa de teste do ble carsharing, usando id hardcoded
+  * e enviar um comando de fechar porta. o metodo de teste foi implementado no serviço, não esqueça
+  * de remover de la também se for higienizar o codigo ;)
+  */
   force(){
     this.devices.force()
   }
   
+  
+  /**
+  * Limpa a lista de devices e readiciona a partir de um observavel.
+  */
   scan(){
     this._listDevices = []
     this.devices.getDevicesProximas(10).subscribe(
       ok =>{
         console.log("device encontrada:", ok)
         console.log("lista de devices:", this._listDevices)
-        this.ngZone.run(() => {
+        this.ngZone.run(() => {// usei o ngZone aqui porque a lista de cards demora para atualizar sem.
           this._listDevices.push(ok);
         });
       },
       err => {
         console.log(err);
+      },
+      () => {
       }
     )
   }
-
   
+  private _refreshCardConectado(){
+  /*transforma o card de desconectado em conectado (envia a lista de services pro card)
+    se o device conectado não estiver na lista de devices, adiciona. */  
+    i = this._listDevices.indexOf(this._deviceConectado)
+    i === -1 ? this._listDevices.push(ok) :  this._listDevices[index].characterists = ok.characteristics //pra não deletar o card anterior, só mudo um pedaço do objeto
+  }
+  
+
+  /**
+  * envia um comando de leitura para o device e imprime a resposta em message 
+  * (tem que stringuifar o retorno do comando de leitura)#TODO
+  */  
   readService(params){
     console.log("read",params)
     this.devices.readService(params.service).subscribe(
@@ -79,7 +106,12 @@ export class HomePage {
       }
     )
   }
-
+  
+  
+  /**
+  * envia um comando de escrita para o device e imprime a resposta em message 
+  * (tem que stringuifar o retorno do comando de leitura)
+  */
   writeService(params){
     console.log("tentando escrever com", params)
     this.devices.writeService(params.service, params.value).subscribe(
@@ -94,40 +126,50 @@ export class HomePage {
       }
     )
   }
-
+  
+  
+  /**
+  * só se conecta com um device por vez, e tem que finalizar manualmente a conexão pra 
+  * abrir outra
+  */
   conectarAoDevice(device : {id : string}){
-    console.log("chamei pra conectar")
-    if(this._deviceConectado == null){
+    console.log("recebi requisiçao para conectar")
+    if(this._deviceConectado == null){//estou livre para conectar
       this.devices.conectaDevice(device.id).subscribe(
-        ok=>{
+        ok=>{//callback sucesso
           console.log("conectei")
-          this.ngZone.run(
+          this.ngZone.run(// sempre que mexo com lista que vai pra tela, pra atualizar mais rapido, uso o ngzone
             ()=>{
               console.log("consegui me conectar", ok)
               this._deviceConectado = ok
-              let index = this._listDevices.indexOf(device);
-              index === -1 ? this._listDevices.push(ok) :  this._listDevices[index] = ok
+              _refreshCardConectado()
               console.log("lista esta assim:", this._listDevices)
             }
-          )
-          
+          )//fim ngzone          
         },
-        err=>{
+        err=>{//callback erro
           console.log("erro ao conectar ao device", device, err)
         }
-      )
+      )//fim observavel
     }
     else{
       console.log("ja estou conectado a outro device")
     }
   }
 
+  /**
+  * a pagina guarda um objeto do device conectado, e o serviço tem 
+  * estado, então para conectar com outro device é preciso desconectar lá 
+  * também.
+  * @param device é objeto do card, que é recebido somente para remover a lista de\
+serviços e tornar o card de device desconectado 
+  **/
   desconecta(device){
     this.devices.desconecta()
     let index = this._listDevices.indexOf(device);
-    this.ngZone.run(() => {
+    this.ngZone.run(() => {//"""""""""""force refresh da lista de cards"""""""""""""" (note as aspas)
       this._deviceConectado = null
-      delete this._listDevices[index].characteristics
+      delete this._listDevices[index].characteristics//volta a ser um card de device desconectado
     });
 
   }
@@ -137,7 +179,7 @@ export class HomePage {
 
 
 
-
+//rip in piece :(
   // private texto : string = "" // texto que aparece na tela
   // private titulo : string = "" // titulo, texto acima do texto
   // private devices = [] // lista de devices scanneadas que tem nome
