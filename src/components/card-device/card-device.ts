@@ -3,8 +3,10 @@ import { AlertController } from 'ionic-angular';
 import { INFERRED_TYPE } from '@angular/compiler/src/output/output_ast';
 /**
  * Card para device.
- * recebe um nome e opcionalemente um Json com device, services etc
- * instancia botões para ler ou escrever em serviços ou desconectar
+ * recebe um nome,id e opcionalemente um Json com array de serviços.
+ * se não tiver a lista de serviços entende-se que é um device desconectado,
+ * portando instancia um botão de conectar neste caso
+ * instancia botões para ler ou escrever em serviços e desconectar
  */
 @Component({
   selector: 'card-device',
@@ -31,29 +33,36 @@ export class CardDeviceComponent {
   }
 
   _conectado() : boolean{
-    return this.deviceServices != null
+    return (this.deviceServices != null) //se tem serviço deve estar conectado
   };
 
   desconecta(){
     this.desconectar.emit();
   }
-
+  
+  /*
+  *   callback do click no botão de conectar
+  *   verifica se esta desconectado para de fato emitir um evento
+  *  
+  */
   conecta(){
-    console.log("chamado conecta", this._conectado())
     if(!this._conectado()){
-      console.log("vou pedir pra conectar")
       this.conectar.emit()
     }
 
   }
 
+  
+  /*
+  * é o mesmo callback para os botões de todos os tipos de serviço (leitura, escrita, escrita sem retorno)
+  */
   doService(service){
     //se é só de leitura
     if(service.properties.indexOf('WriteWithoutResponse') == -1 && service.properties.indexOf('Write') == -1){
       this.read.emit({name: this.name, id: this.id, service})
     }
-    else{
-      let value;
+    else{//aqui cabem os dois casos (talvez um switch deixe isso mais bonito)
+      let value; // valor a ser enviado para o device
       let popup = this.alertCtrl.create({
         title: 'write',
         message: "Qual valor a escrever",
@@ -67,21 +76,18 @@ export class CardDeviceComponent {
         buttons: [
           {
             text: 'Cancel',
-            handler: data => {
-              console.log('Cancel clicked');
-            }
           },
           {
             text: 'Ok',
             handler: data => {
               console.log("clickei ok", data)
-              value = Number(data.valueInserido)
+              value = Number(data.valueInserido)// parse tosco
             }
           }
         ]
       });
       popup.present();
-      popup.onDidDismiss((data)=>this.write.emit({name: this.name, id: this.id, service: service,value: value}))
+      popup.onDidDismiss((data)=>this.write.emit({name: this.name, id: this.id, service: service,value: value}))//manda para a home um request de escrita
     }
   }
 }
