@@ -10,13 +10,18 @@ import { Observable } from 'rxjs/Observable';
  */
 @Injectable()
 export class BleDevicesProvider {
-
+	
+	private _deviceConectado = null;
+	constructor(
+		private ble : BLE
+	) {
+	}
 
 	public autoConecta(id, connectCallback, disconnectCallback){
 		this.ble.autoConnect(id, connectCallback, disconnectCallback);
 	}
-
-  /**
+	
+	/**
   * metodo de teste. o objetivo aqui é tentar uma conexão sem scan;
   * ele tenta em 5s conectar com a placa ble do carsharing e pra verificar se 
   * funcionou envia um comando de abrir porta, que na placa acende o led vermelho
@@ -55,6 +60,7 @@ export class BleDevicesProvider {
 	 * @param timeout? timeout em segundos
 	 */
 	public getDevicesProximas(timeout? : number): Observable<any>{
+		console.log("verificando devices proximas")
 		return Observable.create(
 			dev =>{
 				if (!timeout) timeout = 5;
@@ -83,6 +89,7 @@ export class BleDevicesProvider {
 	 *  @returns observavel com json de serviços no formato { service: string,	characteristic: string, properties: Array<any>}
 	 */
 	public getDeviceServices(deviceId : string, timeout? : number) : Observable<any>{
+		console.log("verificando serviços de devices")
 		if(!timeout) timeout = 5
 		return Observable.create(
 			o=>{
@@ -109,7 +116,7 @@ export class BleDevicesProvider {
 	 * @returns observavel com device conectado
 	 */
 	public conectaDevice(deviceId :string):Observable<any>{
-
+		
 		return Observable.create(
 			o=>{
 				if(this._deviceConectado){
@@ -239,10 +246,5 @@ export class BleDevicesProvider {
 
 	}
 
-	private _deviceConectado = null;
-	constructor(
-		private ble : BLE
-	) {
-	}
 
 }

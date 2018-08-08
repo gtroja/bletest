@@ -23,10 +23,21 @@ export class HomePage {
   ]
   
 
+  
   constructor(
     private devices : BleDevicesProvider,
     private ngZone : NgZone )
-  {}
+    {
+      console.log("vou tentar sobreescrever o log")
+      console.log = (texto, add?)=>{
+        this.message += texto + "\n";
+        if(add){
+          this.message += "\n" + JSON.stringify(add)
+        }
+    
+      }
+      console.log("teste")
+    }
 
   ionViewDidEnter(){
       this.scan()
