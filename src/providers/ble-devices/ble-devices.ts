@@ -15,6 +15,7 @@ export class BleDevicesProvider {
 	constructor(
 		private ble : BLE
 	) {
+		console.log("CRIADO SERVIÇO DE BLE")
 	}
 
 	public autoConecta(id, connectCallback, disconnectCallback){
@@ -63,12 +64,15 @@ export class BleDevicesProvider {
 		console.log("verificando devices proximas")
 		return Observable.create(
 			dev =>{
+				console.log("criado observavel de devices proximas")
 				if (!timeout) timeout = 5;
 				this.ble.scan([],timeout).subscribe(
 					ok => {
+						console.log("scanneado com sucesso")
 						if(ok.name) dev.next(ok)
 					},
 					err =>{
+						console.log("scanneado com erro")
 						dev.error(err)
 					},
 					()=>{
@@ -119,17 +123,20 @@ export class BleDevicesProvider {
 		
 		return Observable.create(
 			o=>{
+				console.log("criado observavel de conectadevice")
 				if(this._deviceConectado){
 					this.desconecta();
 				}
 		
 				this.ble.connect(deviceId).subscribe(
 					ok => {
+						console.log("conectado com sucesso")
 						this._deviceConectado = ok;
 						o.next(ok);
 						o.complete();	
 					},
 					err =>{
+						console.log("erro ao conectar")
 						this._deviceConectado = null;
 						o.error(err);		
 					}

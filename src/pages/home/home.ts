@@ -112,11 +112,9 @@ export class HomePage {
     this.devices.readService(params.service).subscribe(
       ok =>{
         console.log(ok)
-        this.message = ok;
       },
       err =>{
         console.log(err)
-        this.message = err;
 
       }
     )
@@ -132,12 +130,10 @@ export class HomePage {
     this.devices.writeService(params.service, params.value).subscribe(
       ok=>{
           console.log("escrito com sucesso", ok)
-          this.message = ok
         
       },
       err=>{
         console.log("erro ao enviar comando", err)
-        this.message = err
       }
     )
   }
